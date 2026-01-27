@@ -12,10 +12,10 @@ const TOKEN_KEY = 'jwt';
  */
 function cleanToken(token) {
     if (!token) return null;
-    
+
     // Remove whitespace
     token = token.trim();
-    
+
     // Try to parse as JSON if it looks like JSON
     if (token.startsWith('{')) {
         try {
@@ -25,12 +25,12 @@ function cleanToken(token) {
             // Not JSON, continue
         }
     }
-    
+
     // Remove quotes
     if (token.startsWith('"') && token.endsWith('"')) {
         token = token.slice(1, -1);
     }
-    
+
     return token;
 }
 
@@ -40,7 +40,7 @@ function cleanToken(token) {
  */
 function validateToken(token) {
     if (!token) return false;
-    
+
     const parts = token.split('.');
     return parts.length === 3;
 }
@@ -54,39 +54,39 @@ function validateToken(token) {
  */
 async function login(username, password) {
     console.log('🔐 Attempting login...');
-    
+
     try {
         // Encode credentials in Base64
         const credentials = btoa(`${username}:${password}`);
-        
+
         const response = await fetch(AUTH_API_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Basic ${credentials}`
             }
         });
-        
+
         if (!response.ok) {
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
                 throw new Error('Invalid username or password');
             }
             throw new Error(`Authentication failed: ${response.status}`);
         }
-        
+
         // Get token from response (can be plain text or JSON)
         const text = await response.text();
         let token = cleanToken(text);
-        
+
         if (!validateToken(token)) {
             throw new Error('Invalid token format received');
         }
-        
+
         // Store token
         localStorage.setItem(TOKEN_KEY, token);
-        
+
         console.log('✅ Login successful!');
         return token;
-        
+
     } catch (error) {
         console.error('❌ Login failed:', error.message);
         throw error;

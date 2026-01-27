@@ -82,6 +82,7 @@ async function fetchXPTransactions() {
             where: { 
                 type: { _eq: "xp" }
                 amount: { _gt: 0 }
+                eventId: { _eq: 763 }
             }
             order_by: { createdAt: asc }
         ) {
@@ -130,7 +131,10 @@ async function fetchProjects() {
 
     const query = `{
         progress(
-            where: { isDone: { _eq: true } }
+            where: { 
+                isDone: { _eq: true }
+                eventId: { _eq: 763 }
+            }
             order_by: { updatedAt: desc }
         ) {
             id
@@ -260,12 +264,12 @@ async function fetchSkills() {
     const query = `{
         transaction(
             where: { 
-                type: { _like: "%skill%" }
+                type: { _regex: "^skill_" }
+                eventId: { _eq: 763 }
             }
         ) {
             amount
             type
-            path
         }
     }`;
 
@@ -280,20 +284,29 @@ function processSkills(transactions) {
     const skillMap = {};
 
     transactions.forEach(tx => {
-        // Extract skill name from path or type
-        let skillName = tx.type.replace('skill_', '').replace(/_/g, ' ');
+        // Extract skill name from type (e.g., "skill_go" -> "Go")
+        let skillName = tx.type.replace('skill_', '');
 
-        // Try to get more specific name from path
-        if (tx.path) {
-            const pathParts = tx.path.split('/');
-            const lastPart = pathParts[pathParts.length - 1];
-            if (lastPart && lastPart !== 'piscine-go') {
-                skillName = lastPart.replace(/-/g, ' ');
-            }
-        }
+        // Clean up skill name
+        skillName = skillName.replace(/_/g, ' ');
 
-        // Capitalize skill name
-        skillName = skillName
+        // Map common skill names to proper display names
+        const skillNameMap = {
+            'go': 'Go',
+            'js': 'JavaScript',
+            'html': 'HTML/CSS',
+            'css': 'HTML/CSS',
+            'sql': 'SQL',
+            'unix': 'Unix',
+            'docker': 'Docker',
+            'frontend': 'Frontend',
+            'backend': 'Backend',
+            'algo': 'Algorithms',
+            'prog': 'Programming'
+        };
+
+        const skillKey = skillName.toLowerCase();
+        skillName = skillNameMap[skillKey] || skillName
             .split(' ')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');

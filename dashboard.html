@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphQL Profile - Dashboard</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="dashboard-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg width="40" height="40" viewBox="0 0 60 60" fill="none">
+                    <circle cx="30" cy="30" r="28" stroke="url(#navGradient)" stroke-width="4"/>
+                    <path d="M30 15 L30 45 M15 30 L45 30" stroke="url(#navGradient)" stroke-width="4" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="nav-info">
+                    <h3 id="userName">Loading...</h3>
+                    <p>Student Dashboard</p>
+                </div>
+            </div>
+            <button class="btn-logout" id="logoutBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Stats Overview -->
+            <section class="stats-section">
+                <h2 class="section-title">Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total XP</p>
+                            <h3 class="stat-value" id="totalXP">0</h3>
+                            <p class="stat-change positive">+12% from last month</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-success">
+                        <div class="stat-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Projects Done</p>
+                            <h3 class="stat-value" id="projectsDone">0</h3>
+                            <p class="stat-change positive">85% success rate</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="8" r="7"></circle>
+                                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Audit Ratio</p>
+                            <h3 class="stat-value" id="auditRatio">0.0</h3>
+                            <p class="stat-change neutral">Balanced performance</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Information -->
+            <section class="info-section">
+                <h2 class="section-title">User Information</h2>
+                <div class="info-card">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Login</span>
+                            <span class="info-value" id="userLogin">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">User ID</span>
+                            <span class="info-value" id="userId">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value" id="userEmail">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value" id="memberSince">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audit Statistics -->
+            <section class="audit-section">
+                <h2 class="section-title">Audit Statistics</h2>
+                <div class="audit-card">
+                    <div class="audit-stats">
+                        <div class="audit-stat-item">
+                            <div class="audit-stat-icon" style="background: linear-gradient(135deg, #10b98120, #059b6920); color: #10b981;">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="audit-stat-info">
+                                <p class="audit-label">Audits Done</p>
+                                <h3 class="audit-value" id="auditsDone">0</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="audit-stat-item">
+                            <div class="audit-stat-icon" style="background: linear-gradient(135deg, #3b82f620, #2563eb20); color: #3b82f6;">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="8.5" cy="7" r="4"></circle>
+                                    <polyline points="17 11 19 13 23 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="audit-stat-info">
+                                <p class="audit-label">Audits Received</p>
+                                <h3 class="audit-value" id="auditsReceived">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="audit-bar-container">
+                        <div class="audit-bar">
+                            <div class="audit-bar-done" id="auditBarDone" style="width: 0%;">
+                                <span class="audit-bar-label" id="auditDonePercent">0%</span>
+                            </div>
+                            <div class="audit-bar-received" id="auditBarReceived" style="width: 0%;">
+                                <span class="audit-bar-label" id="auditReceivedPercent">0%</span>
+                            </div>
+                        </div>
+                        <div class="audit-bar-legend">
+                            <div class="audit-legend-item">
+                                <span class="audit-legend-dot" style="background: #10b981;"></span>
+                                <span>Done</span>
+                            </div>
+                            <div class="audit-legend-item">
+                                <span class="audit-legend-dot" style="background: #3b82f6;"></span>
+                                <span>Received</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <h2 class="section-title">Statistics</h2>
+                <div class="charts-grid">
+                    <!-- XP Progress Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>XP Progress Timeline</h3>
+                            <div class="chart-legend">
+                                <span class="legend-item">
+                                    <span class="legend-dot" style="background: #667eea;"></span>
+                                    XP Gained
+                                </span>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="xpChart"></div>
+                    </div>
+
+                    <!-- Pass/Fail Ratio Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Pass / Fail Ratio</h3>
+                            <div class="chart-legend">
+                                <span class="legend-item">
+                                    <span class="legend-dot" style="background: #10b981;"></span>
+                                    Passed
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-dot" style="background: #ef4444;"></span>
+                                    Failed
+                                </span>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="passFailChart"></div>
+                    </div>
+
+                    <!-- Skills Radar Chart -->
+                    <div class="chart-card chart-wide">
+                        <div class="chart-header">
+                            <h3>Technology Skills</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Proficiency levels across different technologies</p>
+                        </div>
+                        <div class="chart-container" id="skillsChart"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Projects -->
+            <section class="projects-section">
+                <h2 class="section-title">Recent Projects</h2>
+                <div class="projects-list" id="projectsList">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="scripts/mockData.js"></script>
+    <script src="scripts/charts.js"></script>
+    <script src="scripts/dashboard.js"></script>
+</body>
+</html>

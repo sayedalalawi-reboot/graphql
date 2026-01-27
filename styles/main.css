@@ -101,12 +101,13 @@ body::after {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.4);
-    z-index: -1;
+    z-index: -5;
+    /* Moved further back */
     pointer-events: none;
 }
 
 /* ===================================
-   LOGIN PAGE
+   Responsive Mobile
    =================================== */
 .login-page {
     min-height: 100vh;
@@ -200,23 +201,21 @@ body::after {
 
 .logo {
     margin-bottom: var(--space-lg);
-    animation: rotate 20s linear infinite;
+    display: flex;
+    justify-content: center;
 }
 
-@keyframes rotate {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
+.mc-logo {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.3));
 }
 
 .login-header h1 {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--gray-900);
+    color: var(--black-900);
     margin-bottom: var(--space-sm);
 }
 
@@ -369,6 +368,13 @@ body::after {
     display: flex;
     align-items: center;
     gap: var(--space-md);
+}
+
+.mc-nav-logo {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.3));
 }
 
 .nav-info h3 {

@@ -102,6 +102,8 @@ async function fetchXPTransactions() {
 function processXPData(transactions) {
     const monthlyXP = {};
     let totalXP = 0;
+    let previousMonthXP = 0;
+    let currentMonthXP = 0;
 
     transactions.forEach(tx => {
         totalXP += tx.amount;
@@ -120,7 +122,20 @@ function processXPData(transactions) {
             xp: monthlyXP[date]
         }));
 
-    return { totalXP, xpProgress };
+    // Calculate XP growth from previous month
+    if (xpProgress.length >= 2) {
+        currentMonthXP = xpProgress[xpProgress.length - 1].xp;
+        previousMonthXP = xpProgress[xpProgress.length - 2].xp;
+    } else if (xpProgress.length === 1) {
+        currentMonthXP = xpProgress[0].xp;
+        previousMonthXP = 0;
+    }
+
+    const xpGrowth = previousMonthXP > 0
+        ? ((currentMonthXP - previousMonthXP) / previousMonthXP * 100).toFixed(1)
+        : 0;
+
+    return { totalXP, xpProgress, xpGrowth };
 }
 
 /**
@@ -152,9 +167,50 @@ async function fetchProjects() {
 }
 
 /**
+ * Fetch XP for specific projects by path
+ */
+async function fetchProjectXP(paths) {
+    if (!paths || paths.length === 0) return {};
+
+    // Create a map to store XP by path
+    const xpMap = {};
+
+    // Fetch XP transactions for these specific paths
+    const pathConditions = paths.map(p => `{ path: { _eq: "${p}" } }`).join(', ');
+
+    const query = `{
+        transaction(
+            where: {
+                type: { _eq: "xp" }
+                eventId: { _eq: 763 }
+                _or: [${pathConditions}]
+            }
+        ) {
+            path
+            amount
+        }
+    }`;
+
+    try {
+        const data = await executeQuery(query);
+        // Sum XP for each path
+        data.transaction.forEach(tx => {
+            if (!xpMap[tx.path]) {
+                xpMap[tx.path] = 0;
+            }
+            xpMap[tx.path] += tx.amount;
+        });
+    } catch (e) {
+        console.warn('Could not fetch project XP:', e);
+    }
+
+    return xpMap;
+}
+
+/**
  * Process project data
  */
-function processProjects(projects) {
+async function processProjects(projects, projectXPMap) {
     const projectsDone = projects.length;
 
     let passed = 0;
@@ -166,11 +222,15 @@ function processProjects(projects) {
         if (status === 'passed') passed++;
         else failed++;
 
+        // Get XP for this project
+        const xp = projectXPMap[project.path] || 0;
+
         return {
             id: project.id,
             name: project.object?.name || 'Unknown Project',
             status: status,
             grade: project.grade,
+            xp: xp,  // Include XP amount
             date: project.updatedAt,
             path: project.path
         };
@@ -186,10 +246,16 @@ function processProjects(projects) {
         }
     });
 
+    const successRate = projectsDone > 0 ? ((passed / projectsDone) * 100).toFixed(0) : 0;
+
     return {
         projectsDone,
-        passFailRatio: { passed, failed },
-        recentProjects
+        passFailRatio: {
+            passed: passed,
+            failed: failed
+        },
+        recentProjects,
+        successRate
     };
 }
 
@@ -290,19 +356,28 @@ function processSkills(transactions) {
         // Clean up skill name
         skillName = skillName.replace(/_/g, ' ');
 
-        // Map common skill names to proper display names
+        // Map common skill names - separate Technologies from Technical Skills
         const skillNameMap = {
+            // Technologies (programming languages & tools)
             'go': 'Go',
             'js': 'JavaScript',
-            'html': 'HTML/CSS',
-            'css': 'HTML/CSS',
+            'html': 'HTML',
+            'css': 'CSS',
             'sql': 'SQL',
             'unix': 'Unix',
             'docker': 'Docker',
+            // Technical Skills (concepts & disciplines)
             'frontend': 'Frontend',
             'backend': 'Backend',
+            'front end': 'Frontend',
+            'back end': 'Backend',
             'algo': 'Algorithms',
-            'prog': 'Programming'
+            'algorithms': 'Algorithms',
+            'prog': 'Programming',
+            'programming': 'Programming',
+            'sys admin': 'Sys-admin',
+            'sysadmin': 'Sys-admin',
+            'script': 'Script'
         };
 
         const skillKey = skillName.toLowerCase();
@@ -323,12 +398,12 @@ function processSkills(transactions) {
         .map(([name, xp]) => ({ name, xp }))
         .sort((a, b) => b.xp - a.xp);
 
-    // Normalize to 0-100 scale
-    const maxXP = skills.length > 0 ? skills[0].xp : 1;
+    // Calculate total for percentage
+    const totalAmount = skills.reduce((sum, skill) => sum + skill.xp, 0);
 
     return skills.slice(0, 8).map(skill => ({
         name: skill.name,
-        level: Math.round((skill.xp / maxXP) * 100),
+        level: totalAmount > 0 ? Math.round((skill.xp / totalAmount) * 100) : 0,
         xp: skill.xp
     }));
 }
@@ -356,9 +431,13 @@ async function fetchAllUserData() {
             fetchSkills()
         ]);
 
+        // Fetch XP for recent projects
+        const projectPaths = projects.slice(0, 10).map(p => p.path);
+        const projectXPMap = await fetchProjectXP(projectPaths);
+
         // Process data
-        const { totalXP, xpProgress } = processXPData(xpTransactions);
-        const { projectsDone, passFailRatio, recentProjects } = processProjects(projects);
+        const { totalXP, xpProgress, xpGrowth } = processXPData(xpTransactions);
+        const { projectsDone, passFailRatio, recentProjects, successRate } = await processProjects(projects, projectXPMap);
         const skills = processSkills(skillsData);
 
         const result = {
@@ -367,9 +446,11 @@ async function fetchAllUserData() {
             projectsDone,
             auditRatio: auditData.auditRatio,
             xpProgress,
+            xpGrowth,
             passFailRatio,
             skills,
             recentProjects,
+            successRate,
             auditStats: {
                 given: auditData.given,
                 received: auditData.received

@@ -21,7 +21,7 @@ function createXPChart(data) {
     });
 
     // Create path data
-    const pathData = points.map((p, i) => 
+    const pathData = points.map((p, i) =>
         `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
     ).join(' ');
 
@@ -42,7 +42,7 @@ function createXPChart(data) {
     for (let i = 0; i <= 5; i++) {
         const y = padding.top + (chartHeight / 5) * i;
         const value = Math.round(maxXP - (maxXP / 5) * i);
-        
+
         svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`;
         svg += `<text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="#6b7280">${(value / 1000).toFixed(0)}k</text>`;
     }
@@ -106,6 +106,11 @@ function createPassFailChart(data) {
 
     // Create arc path
     const createArc = (startAngle, endAngle, outerR, innerR) => {
+        // Fix for 360 degree arcs (which SVG doesn't render if start/end are identical)
+        if (endAngle - startAngle >= 360) {
+            endAngle = startAngle + 359.99;
+        }
+
         const start = polarToCartesian(center, center, outerR, endAngle);
         const end = polarToCartesian(center, center, outerR, startAngle);
         const innerStart = polarToCartesian(center, center, innerR, endAngle);
@@ -194,7 +199,7 @@ function createSkillsChart(skills) {
         const radius = (maxRadius / levels) * i;
         const opacity = 0.15 + (i / levels) * 0.05;
         svg += `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="#e5e7eb" stroke-width="1.5" opacity="${opacity}"/>`;
-        
+
         // Add level label
         if (i === levels) {
             const percentage = (i / levels) * 100;
@@ -206,7 +211,7 @@ function createSkillsChart(skills) {
     skills.forEach((skill, i) => {
         const angle = angleStep * i;
         const point = polarToCartesian(angle, maxRadius);
-        
+
         svg += `<line x1="${center}" y1="${center}" x2="${point.x}" y2="${point.y}" stroke="#d1d5db" stroke-width="1.5"/>`;
     });
 
@@ -218,7 +223,7 @@ function createSkillsChart(skills) {
     });
 
     // Create polygon path
-    const pathData = skillPoints.map((p, i) => 
+    const pathData = skillPoints.map((p, i) =>
         `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
     ).join(' ') + ' Z';
 
@@ -239,7 +244,7 @@ function createSkillsChart(skills) {
         const angle = angleStep * i;
         const labelRadius = maxRadius + 35;
         const point = polarToCartesian(angle, labelRadius);
-        
+
         // Adjust text anchor based on position
         let textAnchor = 'middle';
         if (point.x > center + 10) textAnchor = 'start';
@@ -247,7 +252,7 @@ function createSkillsChart(skills) {
 
         // Skill name
         svg += `<text x="${point.x}" y="${point.y}" text-anchor="${textAnchor}" font-size="13" fill="#374151" font-weight="600">${skill.name}</text>`;
-        
+
         // Skill percentage below name
         svg += `<text x="${point.x}" y="${point.y + 16}" text-anchor="${textAnchor}" font-size="11" fill="#667eea" font-weight="700">${skill.level}%</text>`;
     });

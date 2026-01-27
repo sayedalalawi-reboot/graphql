@@ -38,7 +38,7 @@ async function loadDashboard() {
         // Create charts
         createXPChart(data.xpProgress);
         createPassFailChart(data.passFailRatio);
-        createSkillsChart(data.skills);
+        // createSkillsChart(data.skills);  // Commented out - technical skills graph disabled
 
         // Load recent projects
         loadRecentProjects(data);
@@ -71,12 +71,52 @@ function updateNavbar(data) {
 }
 
 /**
- * Update statistics cards
+ * Update statistics cards with real stat changes
  */
 function updateStats(data) {
+    // Update values
     document.getElementById('totalXP').textContent = formatNumber(data.totalXP);
     document.getElementById('projectsDone').textContent = data.projectsDone;
     document.getElementById('auditRatio').textContent = data.auditRatio.toFixed(2);
+
+    // Update stat-change labels with real data
+    const xpChangeElem = document.querySelector('.stat-card.stat-primary .stat-change');
+    if (xpChangeElem && data.xpGrowth) {
+        const growth = parseFloat(data.xpGrowth);
+        if (growth > 0) {
+            xpChangeElem.textContent = `+${growth}% from last month`;
+            xpChangeElem.className = 'stat-change positive';
+        } else if (growth < 0) {
+            xpChangeElem.textContent = `${growth}% from last month`;
+            xpChangeElem.className = 'stat-change negative';
+        } else {
+            xpChangeElem.textContent = 'No change from last month';
+            xpChangeElem.className = 'stat-change neutral';
+        }
+    }
+
+    // Update success rate
+    const successRateElem = document.querySelector('.stat-card.stat-success .stat-change');
+    if (successRateElem && data.successRate !== undefined) {
+        successRateElem.textContent = `${data.successRate}% success rate`;
+        successRateElem.className = 'stat-change positive';
+    }
+
+    // Update audit ratio description
+    const auditChangeElem = document.querySelector('.stat-card.stat-warning .stat-change');
+    if (auditChangeElem) {
+        const ratio = data.auditRatio;
+        if (ratio >= 0.9 && ratio <= 1.1) {
+            auditChangeElem.textContent = 'Balanced performance';
+            auditChangeElem.className = 'stat-change neutral';
+        } else if (ratio > 1.1) {
+            auditChangeElem.textContent = 'Above average performance';
+            auditChangeElem.className = 'stat-change positive';
+        } else {
+            auditChangeElem.textContent = 'Below average performance';
+            auditChangeElem.className = 'stat-change negative';
+        }
+    }
 }
 
 /**
@@ -90,15 +130,15 @@ function updateUserInfo(data) {
 }
 
 /**
- * Update audit statistics section
+ * Update audit statistics section with units
  */
 function updateAuditStats(data) {
     const { given, received } = data.auditStats;
     const total = given + received;
 
-    // Update numbers
-    document.getElementById('auditsDone').textContent = given;
-    document.getElementById('auditsReceived').textContent = received;
+    // Format with raw numbers (no units) as requested
+    document.getElementById('auditsDone').textContent = formatNumber(given);
+    document.getElementById('auditsReceived').textContent = formatNumber(received);
 
     // Calculate percentages
     const donePercent = total > 0 ? (given / total) * 100 : 0;
@@ -116,7 +156,7 @@ function updateAuditStats(data) {
 }
 
 /**
- * Load recent projects list
+ * Load recent projects list with XP in KB format
  */
 function loadRecentProjects(data) {
     const projectsList = document.getElementById('projectsList');
@@ -131,7 +171,7 @@ function loadRecentProjects(data) {
                 <span class="status-badge ${project.status}">
                     ${project.status.toUpperCase()}
                 </span>
-                <span class="project-grade">Grade: ${project.grade}</span>
+                <span class="project-grade">${formatBytes(project.xp)}</span>
             </div>
         </div>
     `).join('');
@@ -169,6 +209,24 @@ function initializeAnimations() {
     document.querySelectorAll('.stat-card, .info-card, .chart-card, .project-item').forEach(el => {
         observer.observe(el);
     });
+}
+
+/**
+ * Helper function to format bytes with units
+ */
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 KB';
+
+    const k = 1000;
+    const kb = bytes / k;
+
+    if (kb < 1000) {
+        return kb.toFixed(1) + ' KB';
+    } else if (kb < 1000000) {
+        return (kb / 1000).toFixed(1) + ' MB';
+    } else {
+        return (kb / 1000000).toFixed(1) + ' GB';
+    }
 }
 
 /**

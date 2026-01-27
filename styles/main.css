@@ -359,17 +359,12 @@ body::after {
 }
 
 .input-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--gray-400);
-    pointer-events: none;
+    display: none;
 }
 
 .input-wrapper input {
     width: 100%;
-    padding: 0.875rem 1rem 0.875rem 3rem;
+    padding: 0.875rem 1rem;
     border: 4px solid #000;
     font-family: inherit;
     font-size: 1.2rem;

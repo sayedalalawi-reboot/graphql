@@ -223,13 +223,31 @@
 
             <!-- Recent Projects -->
             <section class="projects-section">
-                <h2 class="section-title">Recent Projects</h2>
+                <div class="section-header">
+                    <h2 class="section-title">Recent Projects</h2>
+                    <button id="viewAllProjectsBtn" class="btn-secondary">View All Projects</button>
+                </div>
                 <div class="projects-list" id="projectsList">
                     <!-- Projects will be loaded here -->
                 </div>
             </section>
         </div>
     </main>
+
+    <!-- Projects Modal -->
+    <div id="projectsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>All Projects (Event 763)</h2>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="allProjectsList" class="projects-list full-list">
+                    <!-- All projects will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="scripts/auth.js"></script>
     <script src="scripts/api.js"></script>

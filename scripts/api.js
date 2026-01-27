@@ -215,14 +215,8 @@ async function processProjects(projects, projectXPMap) {
 
     let passed = 0;
     let failed = 0;
-
-    const recentProjects = projects.slice(0, 10).map(project => {
+    const allProcessedProjects = projects.map(project => {
         const status = project.grade >= 1 ? 'passed' : 'failed';
-
-        if (status === 'passed') passed++;
-        else failed++;
-
-        // Get XP for this project
         const xp = projectXPMap[project.path] || 0;
 
         return {
@@ -230,20 +224,18 @@ async function processProjects(projects, projectXPMap) {
             name: project.object?.name || 'Unknown Project',
             status: status,
             grade: project.grade,
-            xp: xp,  // Include XP amount
+            xp: xp,
             date: project.updatedAt,
             path: project.path
         };
     });
 
-    // Count all projects for pass/fail ratio
-    projects.forEach(project => {
-        const status = project.grade >= 1 ? 'passed' : 'failed';
-        if (status === 'passed' && !recentProjects.find(p => p.id === project.id)) {
-            passed++;
-        } else if (status === 'failed' && !recentProjects.find(p => p.id === project.id)) {
-            failed++;
-        }
+    const recentProjects = allProcessedProjects.slice(0, 10);
+
+    // Count all projects for pass/fail ratio using the already processed list
+    allProcessedProjects.forEach(project => {
+        if (project.status === 'passed') passed++;
+        else failed++;
     });
 
     const successRate = projectsDone > 0 ? ((passed / projectsDone) * 100).toFixed(0) : 0;
@@ -255,6 +247,7 @@ async function processProjects(projects, projectXPMap) {
             failed: failed
         },
         recentProjects,
+        allProcessedProjects,
         successRate
     };
 }
@@ -431,13 +424,13 @@ async function fetchAllUserData() {
             fetchSkills()
         ]);
 
-        // Fetch XP for recent projects
-        const projectPaths = projects.slice(0, 10).map(p => p.path);
-        const projectXPMap = await fetchProjectXP(projectPaths);
+        // Fetch XP for ALL projects
+        const allProjectPaths = projects.map(p => p.path);
+        const projectXPMap = await fetchProjectXP(allProjectPaths);
 
         // Process data
         const { totalXP, xpProgress, xpGrowth } = processXPData(xpTransactions);
-        const { projectsDone, passFailRatio, recentProjects, successRate } = await processProjects(projects, projectXPMap);
+        const { projectsDone, passFailRatio, recentProjects, allProcessedProjects, successRate } = await processProjects(projects, projectXPMap);
         const skills = processSkills(skillsData);
 
         const result = {
@@ -450,6 +443,7 @@ async function fetchAllUserData() {
             passFailRatio,
             skills,
             recentProjects,
+            allProjects: allProcessedProjects,
             successRate,
             auditStats: {
                 given: auditData.given,

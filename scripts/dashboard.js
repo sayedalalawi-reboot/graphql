@@ -14,6 +14,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('logoutBtn').addEventListener('click', () => {
         window.auth.logout();
     });
+
+    // Setup modal handlers
+    document.getElementById('viewAllProjectsBtn').addEventListener('click', () => {
+        document.getElementById('projectsModal').classList.add('show');
+    });
+
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+        document.getElementById('projectsModal').classList.remove('show');
+    });
+
+    // Close modal on click outside
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('projectsModal');
+        if (event.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
 });
 
 /**
@@ -42,6 +59,9 @@ async function loadDashboard() {
 
         // Load recent projects
         loadRecentProjects(data);
+
+        // Load all projects for modal
+        loadAllProjects(data.allProjects);
 
         // Add smooth scroll animations
         initializeAnimations();
@@ -155,9 +175,6 @@ function updateAuditStats(data) {
     }, 100);
 }
 
-/**
- * Load recent projects list with XP in KB format
- */
 function loadRecentProjects(data) {
     const projectsList = document.getElementById('projectsList');
 
@@ -177,6 +194,30 @@ function loadRecentProjects(data) {
     `).join('');
 
     projectsList.innerHTML = projectsHTML;
+}
+
+/**
+ * Load all projects into the modal list
+ */
+function loadAllProjects(projects) {
+    const allProjectsList = document.getElementById('allProjectsList');
+
+    const html = projects.map(project => `
+        <div class="project-item ${project.status}" style="opacity: 1; transform: none; margin-bottom: 10px;">
+            <div class="project-info">
+                <h4>${project.name}</h4>
+                <p>${project.path} • ${formatDate(project.date)}</p>
+            </div>
+            <div class="project-status">
+                <span class="status-badge ${project.status}">
+                    ${project.status.toUpperCase()}
+                </span>
+                <span class="project-grade">${formatBytes(project.xp)}</span>
+            </div>
+        </div>
+    `).join('');
+
+    allProjectsList.innerHTML = html;
 }
 
 /**

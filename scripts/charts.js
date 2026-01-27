@@ -43,15 +43,15 @@ function createXPChart(data) {
         const y = padding.top + (chartHeight / 5) * i;
         const value = Math.round(maxXP - (maxXP / 5) * i);
 
-        svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`;
-        svg += `<text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="#6b7280">${(value / 1000).toFixed(0)}k</text>`;
+        svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#373737" stroke-width="2"/>`;
+        svg += `<text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-family="VT323" font-size="16" fill="#ffffff">${(value / 1000).toFixed(0)}k</text>`;
     }
 
     // Area under the line
-    svg += `<path d="${areaPath}" fill="url(#xpGradient)"/>`;
+    svg += `<path d="${areaPath}" fill="#78A7FF20"/>`;
 
     // Line
-    svg += `<path d="${pathData}" fill="none" stroke="#667eea" stroke-width="3"/>`;
+    svg += `<path d="${pathData}" fill="none" stroke="#78A7FF" stroke-width="4"/>`;
 
     // Points
     points.forEach((p, i) => {
@@ -66,13 +66,13 @@ function createXPChart(data) {
     data.forEach((d, i) => {
         if (i % 3 === 0) {
             const x = padding.left + (i / (data.length - 1)) * chartWidth;
-            svg += `<text x="${x}" y="${height - 20}" text-anchor="middle" font-size="11" fill="#6b7280">${d.date}</text>`;
+            svg += `<text x="${x}" y="${height - 20}" text-anchor="middle" font-family="VT323" font-size="14" fill="#ffffff">${d.date}</text>`;
         }
     });
 
     // Axis labels
-    svg += `<text x="${width / 2}" y="${height - 5}" text-anchor="middle" font-size="13" fill="#374151" font-weight="600">Timeline</text>`;
-    svg += `<text x="20" y="${height / 2}" text-anchor="middle" font-size="13" fill="#374151" font-weight="600" transform="rotate(-90, 20, ${height / 2})">XP</text>`;
+    svg += `<text x="${width / 2}" y="${height - 5}" text-anchor="middle" font-family="VT323" font-size="18" fill="#ffffff" font-weight="700">Timeline</text>`;
+    svg += `<text x="20" y="${height / 2}" text-anchor="middle" font-family="VT323" font-size="18" fill="#ffffff" font-weight="700" transform="rotate(-90, 20, ${height / 2})">XP</text>`;
 
     svg += '</svg>';
     container.innerHTML = svg;
@@ -133,10 +133,10 @@ function createPassFailChart(data) {
             </path>
 
             <!-- Center text -->
-            <text x="${center}" y="${center - 10}" text-anchor="middle" font-size="40" font-weight="bold" fill="#1f2937">
+            <text x="${center}" y="${center - 10}" text-anchor="middle" font-family="VT323" font-size="48" font-weight="bold" fill="#ffffff">
                 ${passPercentage.toFixed(0)}%
             </text>
-            <text x="${center}" y="${center + 20}" text-anchor="middle" font-size="14" fill="#6b7280">
+            <text x="${center}" y="${center + 20}" text-anchor="middle" font-family="VT323" font-size="20" fill="#ffffff">
                 Success Rate
             </text>
         </svg>
@@ -198,12 +198,12 @@ function createSkillsChart(skills) {
     for (let i = levels; i > 0; i--) {
         const radius = (maxRadius / levels) * i;
         const opacity = 0.15 + (i / levels) * 0.05;
-        svg += `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="#e5e7eb" stroke-width="1.5" opacity="${opacity}"/>`;
+        svg += `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="#373737" stroke-width="2" opacity="${opacity}"/>`;
 
         // Add level label
         if (i === levels) {
             const percentage = (i / levels) * 100;
-            svg += `<text x="${center}" y="${center - radius - 8}" text-anchor="middle" font-size="11" fill="#9ca3af" font-weight="500">${percentage}%</text>`;
+            svg += `<text x="${center}" y="${center - radius - 8}" text-anchor="middle" font-family="VT323" font-size="16" fill="#ffffff" font-weight="500">${percentage}%</text>`;
         }
     }
 
@@ -251,10 +251,10 @@ function createSkillsChart(skills) {
         if (point.x < center - 10) textAnchor = 'end';
 
         // Skill name
-        svg += `<text x="${point.x}" y="${point.y}" text-anchor="${textAnchor}" font-size="13" fill="#374151" font-weight="600">${skill.name}</text>`;
+        svg += `<text x="${point.x}" y="${point.y}" text-anchor="${textAnchor}" font-family="VT323" font-size="18" fill="#ffffff" font-weight="700">${skill.name}</text>`;
 
         // Skill percentage below name
-        svg += `<text x="${point.x}" y="${point.y + 16}" text-anchor="${textAnchor}" font-size="11" fill="#667eea" font-weight="700">${skill.level}%</text>`;
+        svg += `<text x="${point.x}" y="${point.y + 16}" text-anchor="${textAnchor}" font-family="VT323" font-size="16" fill="#7CBA3D" font-weight="700">${skill.level}%</text>`;
     });
 
     svg += '</svg>';

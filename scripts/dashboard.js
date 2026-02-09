@@ -95,7 +95,7 @@ function updateNavbar(data) {
  */
 function updateStats(data) {
     // Update values
-    document.getElementById('totalXP').textContent = formatNumber(data.totalXP);
+    document.getElementById('totalXP').textContent = formatBytes(data.totalXP);
     document.getElementById('projectsDone').textContent = data.projectsDone;
     document.getElementById('auditRatio').textContent = data.auditRatio.toFixed(2);
 
@@ -156,9 +156,9 @@ function updateAuditStats(data) {
     const { given, received } = data.auditStats;
     const total = given + received;
 
-    // Format with raw numbers (no units) as requested
-    document.getElementById('auditsDone').textContent = formatNumber(given);
-    document.getElementById('auditsReceived').textContent = formatNumber(received);
+    // Format with proper units (KB/MB/GB)
+    document.getElementById('auditsDone').textContent = formatBytes(given);
+    document.getElementById('auditsReceived').textContent = formatBytes(received);
 
     // Calculate percentages
     const donePercent = total > 0 ? (given / total) * 100 : 0;
@@ -188,7 +188,7 @@ function loadRecentProjects(data) {
                 <span class="status-badge ${project.status}">
                     ${project.status.toUpperCase()}
                 </span>
-                <span class="project-grade">${formatBytes(project.xp)}</span>
+                <span class="project-grade">${formatProjectXP(project.xp)}</span>
             </div>
         </div>
     `).join('');
@@ -212,7 +212,7 @@ function loadAllProjects(projects) {
                 <span class="status-badge ${project.status}">
                     ${project.status.toUpperCase()}
                 </span>
-                <span class="project-grade">${formatBytes(project.xp)}</span>
+                <span class="project-grade">${formatProjectXP(project.xp)}</span>
             </div>
         </div>
     `).join('');
@@ -254,6 +254,9 @@ function initializeAnimations() {
 
 /**
  * Helper function to format bytes with units
+ * KB: XXX KB (no decimals)
+ * MB: X.XX MB (2 decimals)
+ * GB: X.XX GB (2 decimals)
  */
 function formatBytes(bytes) {
     if (bytes === 0) return '0 KB';
@@ -262,11 +265,38 @@ function formatBytes(bytes) {
     const kb = bytes / k;
 
     if (kb < 1000) {
+        // For KB: round to whole number (XXX KB)
+        return Math.round(kb) + ' KB';
+    } else if (kb < 1000000) {
+        // For MB: X.XX MB (2 decimal places)
+        return (kb / 1000).toFixed(2) + ' MB';
+    } else {
+        // For GB: X.XX GB (2 decimal places)
+        return (kb / 1000000).toFixed(2) + ' GB';
+    }
+}
+
+/**
+ * Helper function to format project XP with one decimal place
+ * KB: XXX.X KB (1 decimal)
+ * MB: X.XX MB (2 decimals)
+ * GB: X.XX GB (2 decimals)
+ */
+function formatProjectXP(bytes) {
+    if (bytes === 0) return '0.0 KB';
+
+    const k = 1000;
+    const kb = bytes / k;
+
+    if (kb < 1000) {
+        // For KB: one decimal place (XXX.X KB)
         return kb.toFixed(1) + ' KB';
     } else if (kb < 1000000) {
-        return (kb / 1000).toFixed(1) + ' MB';
+        // For MB: X.XX MB (2 decimal places)
+        return (kb / 1000).toFixed(2) + ' MB';
     } else {
-        return (kb / 1000000).toFixed(1) + ' GB';
+        // For GB: X.XX GB (2 decimal places)
+        return (kb / 1000000).toFixed(2) + ' GB';
     }
 }
 

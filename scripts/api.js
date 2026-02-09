@@ -274,8 +274,8 @@ async function fetchAuditRatio() {
         if (user.auditRatio !== undefined) {
             return {
                 auditRatio: user.auditRatio,
-                given: Math.round(user.totalUp / 1000), // Approximate count
-                received: Math.round(user.totalDown / 1000)
+                given: user.totalUp, // Bytes for audits given (formatted by formatBytes)
+                received: user.totalDown // Bytes for audits received (formatted by formatBytes)
             };
         }
     } catch (e) {
@@ -302,8 +302,8 @@ async function fetchAuditRatio() {
 
     const totalUp = data.upTransactions.aggregate.sum?.amount || 0;
     const totalDown = data.downTransactions.aggregate.sum?.amount || 0;
-    const given = data.upTransactions.aggregate.count || 0;
-    const received = data.downTransactions.aggregate.count || 0;
+    const given = totalUp; // Use byte amount, not count
+    const received = totalDown; // Use byte amount, not count
 
     const auditRatio = totalDown > 0 ? totalUp / totalDown : 0;
 

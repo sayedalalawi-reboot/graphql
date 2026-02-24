@@ -217,7 +217,7 @@ async function processProjects(projects, projectXPMap) {
     let failed = 0;
     const allProcessedProjects = projects.map(project => {
         const status = project.grade >= 1 ? 'passed' : 'failed';
-        const xp = projectXPMap[project.path] || 0;
+        const xp = status === 'passed' ? (projectXPMap[project.path] || 0) : 0;
 
         return {
             id: project.id,
@@ -429,8 +429,14 @@ async function fetchAllUserData() {
         const projectXPMap = await fetchProjectXP(allProjectPaths);
 
         // Process data
-        const { totalXP, xpProgress, xpGrowth } = processXPData(xpTransactions);
+        let { totalXP, xpProgress, xpGrowth } = processXPData(xpTransactions);
         const { projectsDone, passFailRatio, recentProjects, allProcessedProjects, successRate } = await processProjects(projects, projectXPMap);
+
+        // Subtract XP from failed projects
+        const failedXP = allProcessedProjects
+            .filter(p => p.status === 'failed')
+            .reduce((sum, p) => sum + (projectXPMap[p.path] || 0), 0);
+        totalXP -= failedXP;
         const skills = processSkills(skillsData);
 
         const result = {

@@ -5,6 +5,9 @@
 
 const GRAPHQL_API_URL = 'https://learn.reboot01.com/api/graphql-engine/v1/graphql';
 
+// Dynamic event ID - fetched at runtime based on the logged-in user's cohort
+let userEventId = null;
+
 /**
  * Execute a GraphQL query
  * @param {string} query - GraphQL query string
@@ -46,6 +49,52 @@ async function executeQuery(query) {
 }
 
 /**
+ * Fetch the user's event ID dynamically based on their cohort
+ */
+async function fetchUserEventId() {
+    console.log('📊 Detecting user cohort event...');
+
+    const query = `{
+        user {
+            id
+            login
+        }
+    }`;
+
+    const userData = await executeQuery(query);
+    const login = userData.user[0].login;
+
+    // Query event_user to find the user's main curriculum event
+    const eventQuery = `{
+        event_user(where: { userLogin: { _eq: "${login}" } }) {
+            eventId
+            event {
+                path
+            }
+        }
+    }`;
+
+    const eventData = await executeQuery(eventQuery);
+    const events = eventData.event_user;
+
+    // Find the main module event (path contains "/bahrain/bh-module")
+    const mainEvent = events.find(e => e.event?.path?.includes('/bahrain/bh-module'));
+
+    if (mainEvent) {
+        userEventId = mainEvent.eventId;
+        console.log(`✅ Detected cohort event ID: ${userEventId}`);
+    } else if (events.length > 0) {
+        // Fallback: use the first event if no bh-module match
+        userEventId = events[0].eventId;
+        console.log(`⚠️ Using fallback event ID: ${userEventId}`);
+    } else {
+        throw new Error('Could not determine user cohort event');
+    }
+
+    return userEventId;
+}
+
+/**
  * Fetch user information
  */
 async function fetchUserInfo() {
@@ -82,7 +131,7 @@ async function fetchXPTransactions() {
             where: { 
                 type: { _eq: "xp" }
                 amount: { _gt: 0 }
-                eventId: { _eq: 763 }
+                eventId: { _eq: ${userEventId} }
             }
             order_by: { createdAt: asc }
         ) {
@@ -148,7 +197,7 @@ async function fetchProjects() {
         progress(
             where: { 
                 isDone: { _eq: true }
-                eventId: { _eq: 763 }
+                eventId: { _eq: ${userEventId} }
             }
             order_by: { updatedAt: desc }
         ) {
@@ -182,7 +231,7 @@ async function fetchProjectXP(paths) {
         transaction(
             where: {
                 type: { _eq: "xp" }
-                eventId: { _eq: 763 }
+                eventId: { _eq: ${userEventId} }
                 _or: [${pathConditions}]
             }
         ) {
@@ -324,7 +373,7 @@ async function fetchSkills() {
         transaction(
             where: { 
                 type: { _regex: "^skill_" }
-                eventId: { _eq: 763 }
+                eventId: { _eq: ${userEventId} }
             }
         ) {
             amount
@@ -409,6 +458,9 @@ async function fetchAllUserData() {
     console.log('🚀 Starting data fetch...');
 
     try {
+        // First, detect the user's cohort event ID
+        await fetchUserEventId();
+
         // Fetch all data in parallel
         const [
             user,

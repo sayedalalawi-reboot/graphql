@@ -77,14 +77,16 @@ async function fetchUserEventId() {
     const eventData = await executeQuery(eventQuery);
     const events = eventData.event_user;
 
-    // Find the main module event (path contains "/bahrain/bh-module")
-    const mainEvent = events.find(e => e.event?.path?.includes('/bahrain/bh-module'));
+    // FIX Bug 1: Flexible cohort detection — match any event path containing 'module'
+    // instead of hardcoding '/bahrain/bh-module' which misses other cohorts
+    const mainEvent = events.find(e => e.event?.path?.includes('module'));
 
     if (mainEvent) {
         userEventId = mainEvent.eventId;
-        console.log(`✅ Detected cohort event ID: ${userEventId}`);
+        console.log(`✅ Detected cohort event ID: ${userEventId} (path: ${mainEvent.event?.path})`);
     } else if (events.length > 0) {
-        // Fallback: use the first event if no bh-module match
+        // FIX Bug 1: Log all available paths for debugging before falling back
+        console.warn('⚠️ No "module" event found. Available event paths:', events.map(e => e.event?.path));
         userEventId = events[0].eventId;
         console.log(`⚠️ Using fallback event ID: ${userEventId}`);
     } else {
@@ -126,12 +128,16 @@ async function fetchUserInfo() {
 async function fetchXPTransactions() {
     console.log('📊 Fetching XP transactions...');
 
+    // FIX Bug 1: Safety net — if userEventId is null, omit the eventId filter
+    // so we still return XP transactions instead of nothing
+    const eventFilter = userEventId ? `eventId: { _eq: ${userEventId} }` : '';
+
     const query = `{
         transaction(
             where: { 
                 type: { _eq: "xp" }
                 amount: { _gt: 0 }
-                eventId: { _eq: ${userEventId} }
+                ${eventFilter}
             }
             order_by: { createdAt: asc }
         ) {
@@ -193,11 +199,15 @@ function processXPData(transactions) {
 async function fetchProjects() {
     console.log('📊 Fetching project results...');
 
+    // FIX Bug 1: Safety net — if userEventId is null, omit the eventId filter
+    const eventFilter = userEventId ? `eventId: { _eq: ${userEventId} }` : '';
+
     const query = `{
         progress(
             where: { 
                 isDone: { _eq: true }
-                eventId: { _eq: ${userEventId} }
+                ${eventFilter}
+                path: { _nregex: "piscine|rust" }
             }
             order_by: { updatedAt: desc }
         ) {
@@ -227,11 +237,14 @@ async function fetchProjectXP(paths) {
     // Fetch XP transactions for these specific paths
     const pathConditions = paths.map(p => `{ path: { _eq: "${p}" } }`).join(', ');
 
+    // FIX Bug 1: Safety net — if userEventId is null, omit the eventId filter
+    const eventFilter = userEventId ? `eventId: { _eq: ${userEventId} }` : '';
+
     const query = `{
         transaction(
             where: {
                 type: { _eq: "xp" }
-                eventId: { _eq: ${userEventId} }
+                ${eventFilter}
                 _or: [${pathConditions}]
             }
         ) {
@@ -260,11 +273,18 @@ async function fetchProjectXP(paths) {
  * Process project data
  */
 async function processProjects(projects, projectXPMap) {
-    const projectsDone = projects.length;
+    // FIX Bug 2: Secondary JS filter — exclude any piscine/rust projects that
+    // may have slipped through the GraphQL filter, before counting pass/fail
+    const filteredProjects = projects.filter(p =>
+        !p.path.toLowerCase().includes('piscine') &&
+        !p.path.toLowerCase().includes('rust')
+    );
+
+    const projectsDone = filteredProjects.length;
 
     let passed = 0;
     let failed = 0;
-    const allProcessedProjects = projects.map(project => {
+    const allProcessedProjects = filteredProjects.map(project => {
         const status = project.grade >= 1 ? 'passed' : 'failed';
         const xp = status === 'passed' ? (projectXPMap[project.path] || 0) : 0;
 
@@ -369,11 +389,14 @@ async function fetchAuditRatio() {
 async function fetchSkills() {
     console.log('📊 Fetching skills...');
 
+    // FIX Bug 1: Safety net — if userEventId is null, omit the eventId filter
+    const eventFilter = userEventId ? `eventId: { _eq: ${userEventId} }` : '';
+
     const query = `{
         transaction(
             where: { 
                 type: { _regex: "^skill_" }
-                eventId: { _eq: ${userEventId} }
+                ${eventFilter}
             }
         ) {
             amount

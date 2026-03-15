@@ -79,7 +79,7 @@ async function fetchUserEventId() {
 
     // FIX Bug 1: Flexible cohort detection — match any event path containing 'module'
     // instead of hardcoding '/bahrain/bh-module' which misses other cohorts
-    const mainEvent = events.find(e => e.event?.path?.includes('module'));
+    const mainEvent = events.find(e => e.event?.path === '/bahrain/bh-module');
 
     if (mainEvent) {
         userEventId = mainEvent.eventId;
